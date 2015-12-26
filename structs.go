@@ -78,9 +78,11 @@ func (s *Struct) Map() map[string]interface{} {
 			name = tagName
 		}
 
+		isZero := reflect.DeepEqual(val.Interface(), reflect.Zero(val.Type()).Interface())
+
 		// if the value is a zero value and the field is marked as omitempty do
 		// not include
-		if tagOpts.Has("omitempty") {
+		if tagOpts.Has("omitempty") && isZero {
 			zero := reflect.Zero(val.Type()).Interface()
 			current := val.Interface()
 
@@ -104,7 +106,11 @@ func (s *Struct) Map() map[string]interface{} {
 			finalVal = val.Interface()
 		}
 
-		out[name] = finalVal
+		if isZero && tagOpts.Has("nil") {
+			out[name] = nil
+		} else {
+			out[name] = finalVal
+		}
 	}
 
 	return out
